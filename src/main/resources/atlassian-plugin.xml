@@ -1,0 +1,16 @@
+<atlassian-plugin key="${project.groupId}.${project.artifactId}" name="${project.name}" plugins-version="2">
+	<plugin-info>
+		<description>${project.description}</description>
+		<version>${project.version}</version>
+		<vendor name="${project.organization.name}" url="${project.organization.url}" />
+	</plugin-info>
+
+	<taskType key="TagExpirationTask" name="ScriptHost Task" class="com.trusolve.atlassian.bamboo.plugins.tagexpiration.tasks.TagExpirationTask">
+		<description>Perform setting and expiry of tags on builds.</description>
+		<category name="deployment" />
+		<configuration class="com.trusolve.atlassian.bamboo.plugins.scripthost.tasks.TagExpirationTaskConfigurator" />
+		<resource type="freemarker" name="edit" location="templates/buildProcessor/tagExpirationTaskEdit.ftl" />
+		<resource type="freemarker" name="view" location="templates/buildProcessor/tagExpirationTaskView.ftl" />
+		<resource type="download" name="icon" location="images/pluginLogo.png" />
+	</taskType>
+</atlassian-plugin>
