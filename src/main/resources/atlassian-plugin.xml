@@ -5,12 +5,16 @@
 		<vendor name="${project.organization.name}" url="${project.organization.url}" />
 	</plugin-info>
 
-	<taskType key="TagExpirationTask" name="ScriptHost Task" class="com.trusolve.atlassian.bamboo.plugins.tagexpiration.tasks.TagExpirationTask">
-		<description>Perform setting and expiry of tags on builds.</description>
+	<taskType key="LabelExpirationTask" name="Label Expiration Task" class="com.trusolve.atlassian.bamboo.plugins.labelexpiration.task.LabelExpirationTask">
+		<description>Perform setting and expiry of labels on builds.</description>
+		<category name="builder" />
 		<category name="deployment" />
-		<configuration class="com.trusolve.atlassian.bamboo.plugins.scripthost.tasks.TagExpirationTaskConfigurator" />
-		<resource type="freemarker" name="edit" location="templates/buildProcessor/tagExpirationTaskEdit.ftl" />
-		<resource type="freemarker" name="view" location="templates/buildProcessor/tagExpirationTaskView.ftl" />
+		<configuration class="com.trusolve.atlassian.bamboo.plugins.labelexpiration.task.LabelExpirationTaskConfigurator" />
+		<resource type="freemarker" name="edit" location="templates/buildProcessor/labelExpirationTaskEdit.ftl" />
+		<resource type="freemarker" name="view" location="templates/buildProcessor/labelExpirationTaskView.ftl" />
 		<resource type="download" name="icon" location="images/pluginLogo.png" />
 	</taskType>
+	<component-import key="transactionTemplate" name="Hibernate Transaction Template" interface="com.atlassian.sal.api.transaction.TransactionTemplate">
+		<description>hibernate transaction</description>
+	</component-import>
 </atlassian-plugin>

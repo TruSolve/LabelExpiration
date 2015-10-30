@@ -6,7 +6,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.trusolve.atlassian.bamboo</groupId>
-    <artifactId>TagExpirationTask</artifactId>
+    <artifactId>LabelExpirationTask</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
     <organization>
@@ -14,8 +14,8 @@
         <url>http://www.trusolve.com</url>
     </organization>
 
-    <name>TagExpirationTask</name>
-    <description>This is the com.trusolve.atlassian.bamboo:TagExpirationTask plugin for Atlassian Bamboo.</description>
+    <name>LabelExpirationTask</name>
+    <description>This is the com.trusolve.atlassian.bamboo:LabelExpirationTask plugin for Atlassian Bamboo.</description>
     <packaging>atlassian-plugin</packaging>
 
     <properties>

@@ -1,4 +1,4 @@
-package com.trusolve.atlassian.bamboo.plugins.tagexpirationtask.task;
+package com.trusolve.atlassian.bamboo.plugins.labelexpiration.task;
 /* Copyright 2015 TruSolve, LLC
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,8 +35,10 @@ import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.sal.api.transaction.TransactionCallback;
+import com.atlassian.sal.api.transaction.TransactionTemplate;
 
-public class TagExpirationTask implements CommonTaskType
+public class LabelExpirationTask implements CommonTaskType
 {
 	private PlanManager planManager = null;
 	public PlanManager getPlanManager()
@@ -71,8 +73,16 @@ public class TagExpirationTask implements CommonTaskType
 		this.resultsSummaryManager = resultsSummaryManager;
 	}
 
-	
-	
+	private TransactionTemplate transactionTemplate = null;
+	public TransactionTemplate getTransactionTemplate()
+	{
+		return transactionTemplate;
+	}
+	public void setTransactionTemplate(TransactionTemplate transactionTemplate)
+	{
+		this.transactionTemplate = transactionTemplate;
+	}
+
 	@Override
 	public TaskResult execute(CommonTaskContext taskContext) throws TaskException
 	{
@@ -81,17 +91,17 @@ public class TagExpirationTask implements CommonTaskType
 
 		final ConfigurationMap config = taskContext.getConfigurationMap();
 
-		final String groupingTag = StringUtils.trim(config.get(TagExpirationTaskConfigurator.TAGEXPIRATION_RECORDTAG));
-		final String expireTag = StringUtils.trim(config.get(TagExpirationTaskConfigurator.TAGEXPIRATION_EXPIRETAG));
-		final String tagsToRetainString = StringUtils.trim(config.get(TagExpirationTaskConfigurator.TAGEXPIRATION_TAGSTORETAIN));
-		final int tagsToRetain;
+		final String groupingLabel = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_RECORDLABEL));
+		final String expireLabel = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_EXPIRELABEL));
+		final String labelsToRetainString = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_LABELSSTORETAIN));
+		final int labelssToRetain;
 		try
 		{
-			tagsToRetain = Integer.parseInt(tagsToRetainString);
+			labelssToRetain = Integer.parseInt(labelsToRetainString);
 		}
 		catch (Exception e)
 		{
-			throw new TaskException("Problem parsing tag retention", e);
+			throw new TaskException("Problem parsing label retention", e);
 		}
 
 		try
@@ -117,24 +127,33 @@ public class TagExpirationTask implements CommonTaskType
 				builder.failed();
 				return builder.build();
 			}
-			labelManager.addLabel(groupingTag, planResultKey, null);
-			if( ! groupingTag.equalsIgnoreCase(expireTag) )
+			labelManager.addLabel(groupingLabel, planResultKey, null);
+			if( ! groupingLabel.equalsIgnoreCase(expireLabel) )
 			{
-				labelManager.addLabel(expireTag, planResultKey, null);
+				labelManager.addLabel(expireLabel, planResultKey, null);
 			}
 			
 			ResultsSummaryCriteria rsc = new ResultsSummaryCriteria(planKey);
-			rsc.setMatchesLabels(new ArrayList<Label>(labelManager.getLabelsByName(Arrays.asList(new String[]{groupingTag}))));
+			rsc.setMatchesLabels(new ArrayList<Label>(labelManager.getLabelsByName(Arrays.asList(new String[]{groupingLabel}))));
 			
 			int i = 0;
 			for( ResultsSummary rs : resultsSummaryManager.getResultSummaries(rsc) )
 			{
 				i++;
-				if( i < tagsToRetain )
+				if( i <= labelssToRetain )
 				{
 					continue;
 				}
-				labelManager.removeLabel(expireTag, rs.getPlanResultKey(), null);
+				final PlanResultKey prk = rs.getPlanResultKey();
+				transactionTemplate.execute(new TransactionCallback<Object>()
+					{
+						@Override
+						public Object doInTransaction()
+						{
+							labelManager.removeLabel(expireLabel, prk, null);
+							return null;
+						}
+					});
 			}
 		}
 		catch (Exception e)

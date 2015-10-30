@@ -1,4 +1,4 @@
-package com.trusolve.atlassian.bamboo.plugins.tagexpirationtask.task;
+package com.trusolve.atlassian.bamboo.plugins.labelexpiration.task;
 /* Copyright 2015 TruSolve, LLC
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,6 @@ package com.trusolve.atlassian.bamboo.plugins.tagexpirationtask.task;
 */
 
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,20 +26,18 @@ import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.AbstractTaskConfigurator;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
-import com.atlassian.core.util.PairType;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 
-public class TagExpirationTaskConfigurator extends AbstractTaskConfigurator
+public class LabelExpirationTaskConfigurator extends AbstractTaskConfigurator
 {
-	public static final String TAGEXPIRATION_RECORDTAG = "groupingTag";
-	public static final String TAGEXPIRATION_EXPIRETAG = "expireTag";
-	public static final String TAGEXPIRATION_TAGSTORETAIN = "tagsToRetain";
+	public static final String LABELEXPIRATION_RECORDLABEL = "groupingLabel";
+	public static final String LABELEXPIRATION_EXPIRELABEL = "expireLabel";
+	public static final String LABELEXPIRATION_LABELSSTORETAIN = "LabelsToRetain";
 
     private static final Set<String> FIELDS = ImmutableSet.of(
-    		TAGEXPIRATION_RECORDTAG,
-    		TAGEXPIRATION_EXPIRETAG,
-    		TAGEXPIRATION_TAGSTORETAIN
+    		LABELEXPIRATION_RECORDLABEL,
+    		LABELEXPIRATION_EXPIRELABEL,
+    		LABELEXPIRATION_LABELSSTORETAIN
     );
     
     
@@ -78,25 +75,25 @@ public class TagExpirationTaskConfigurator extends AbstractTaskConfigurator
     {
         super.validate(params, errorCollection);
 
-        if (StringUtils.isEmpty(params.getString(TagExpirationTaskConfigurator.TAGEXPIRATION_RECORDTAG)))
+        if (StringUtils.isEmpty(params.getString(LabelExpirationTaskConfigurator.LABELEXPIRATION_RECORDLABEL)))
         {
-            errorCollection.addError(TagExpirationTaskConfigurator.TAGEXPIRATION_RECORDTAG, "Please specify the recording tag.");
+            errorCollection.addError(LabelExpirationTaskConfigurator.LABELEXPIRATION_RECORDLABEL, "Please specify the recording label.");
         }
-        if (StringUtils.isEmpty(params.getString(TagExpirationTaskConfigurator.TAGEXPIRATION_EXPIRETAG)))
+        if (StringUtils.isEmpty(params.getString(LabelExpirationTaskConfigurator.LABELEXPIRATION_EXPIRELABEL)))
         {
-            errorCollection.addError(TagExpirationTaskConfigurator.TAGEXPIRATION_EXPIRETAG, "Please specify the expiry tag (tag to add/remove based on policy).");
+            errorCollection.addError(LabelExpirationTaskConfigurator.LABELEXPIRATION_EXPIRELABEL, "Please specify the expiry label (label to add/remove based on policy).");
         }
-        if (StringUtils.isEmpty(params.getString(TagExpirationTaskConfigurator.TAGEXPIRATION_TAGSTORETAIN)))
+        if (StringUtils.isEmpty(params.getString(LabelExpirationTaskConfigurator.LABELEXPIRATION_LABELSSTORETAIN)))
         {
-            errorCollection.addError(TagExpirationTaskConfigurator.TAGEXPIRATION_TAGSTORETAIN, "Please specify the number of tags to retain.");
+            errorCollection.addError(LabelExpirationTaskConfigurator.LABELEXPIRATION_LABELSSTORETAIN, "Please specify the number of labels to retain.");
         }
         try
         {
-        	Integer.parseInt(params.getString(TagExpirationTaskConfigurator.TAGEXPIRATION_TAGSTORETAIN));
+        	Integer.parseInt(params.getString(LabelExpirationTaskConfigurator.LABELEXPIRATION_LABELSSTORETAIN));
         }
         catch( Exception e )
         {
-        	errorCollection.addError(TagExpirationTaskConfigurator.TAGEXPIRATION_TAGSTORETAIN, "Please specify a valid integer for the number of tags to retain.");
+        	errorCollection.addError(LabelExpirationTaskConfigurator.LABELEXPIRATION_LABELSSTORETAIN, "Please specify a valid integer for the number of labels to retain.");
         }
     }
 }
