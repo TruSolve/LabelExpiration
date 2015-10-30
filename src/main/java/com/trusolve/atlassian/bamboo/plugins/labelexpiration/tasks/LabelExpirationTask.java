@@ -1,4 +1,4 @@
-package com.trusolve.atlassian.bamboo.plugins.labelexpiration.task;
+package com.trusolve.atlassian.bamboo.plugins.labelexpiration.tasks;
 /* Copyright 2015 TruSolve, LLC
 
    Licensed under the Apache License, Version 2.0 (the "License");
