@@ -16,6 +16,10 @@ package com.trusolve.atlassian.bamboo.plugins.labelexpiration.tasks;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.ListUtils;
 
 import com.amazonaws.util.StringUtils;
 import com.atlassian.bamboo.build.logger.BuildLogger;
@@ -91,13 +95,26 @@ public class LabelExpirationTask implements CommonTaskType
 
 		final ConfigurationMap config = taskContext.getConfigurationMap();
 
-		final String groupingLabel = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_RECORDLABEL));
+		final String groupingLabel = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_GROUPINGLABEL));
+		final String groupingLabelDelete = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_GROUPINGLABELDELETE));
 		final String expireLabel = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_EXPIRELABEL));
 		final String labelsToRetainString = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_LABELSSTORETAIN));
-		final int labelssToRetain;
+		final String labelsToIgnoreString = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_LABELSSTOIGNORE));
+		final List<String> labelsToIgnore = new ArrayList<String>();
+		
+		if( labelsToIgnoreString != null && labelsToIgnoreString.length() > 0 )
+		{
+			for( String l : labelsToIgnoreString.split(",") )
+			{
+				l = l.trim().toLowerCase();
+				labelsToIgnore.add(l);
+			}
+		}
+		
+		final int labelsToRetain;
 		try
 		{
-			labelssToRetain = Integer.parseInt(labelsToRetainString);
+			labelsToRetain = Integer.parseInt(labelsToRetainString);
 		}
 		catch (Exception e)
 		{
@@ -106,20 +123,24 @@ public class LabelExpirationTask implements CommonTaskType
 
 		try
 		{
-			String planKey = null;
+			final String planKey;
 			PlanResultKey planResultKey = null;
+			final int adjustedLabelsToRetain;
 			
 			if( taskContext instanceof TaskContext )
 			{
 				TaskContext buildContext = (TaskContext) taskContext;
 				planKey = buildContext.getBuildContext().getParentBuildContext().getPlanKey();
 				planResultKey = buildContext.getBuildContext().getParentBuildContext().getPlanResultKey();
+				// decrement the labelsToRetain since the currently building result will get the label, but won't be present in the build label search.
+				adjustedLabelsToRetain = labelsToRetain - 1;
 			}
 			else if ( taskContext instanceof DeploymentTaskContext )
 			{
 				DeploymentTaskContext dtc = (DeploymentTaskContext) taskContext;
 				planKey = dtc.getDeploymentContext().getVariableContext().getEffectiveVariables().get("planKey").getValue();
 				planResultKey = PlanKeys.getPlanResultKey(dtc.getDeploymentContext().getVariableContext().getEffectiveVariables().get("buildResultKey").getValue());
+				adjustedLabelsToRetain = labelsToRetain;
 			}
 			else
 			{
@@ -133,28 +154,40 @@ public class LabelExpirationTask implements CommonTaskType
 				labelManager.addLabel(expireLabel, planResultKey, null);
 			}
 			
-			ResultsSummaryCriteria rsc = new ResultsSummaryCriteria(planKey);
-			rsc.setMatchesLabels(new ArrayList<Label>(labelManager.getLabelsByName(Arrays.asList(new String[]{groupingLabel}))));
 			
-			int i = 0;
-			for( ResultsSummary rs : resultsSummaryManager.getResultSummaries(rsc) )
+			
+			transactionTemplate.execute(new TransactionCallback<Object>()
 			{
-				i++;
-				if( i <= labelssToRetain )
+				@Override
+				public Object doInTransaction()
 				{
-					continue;
-				}
-				final PlanResultKey prk = rs.getPlanResultKey();
-				transactionTemplate.execute(new TransactionCallback<Object>()
+					ResultsSummaryCriteria rsc = new ResultsSummaryCriteria(planKey);
+					rsc.setMatchesLabels(new ArrayList<Label>(labelManager.getLabelsByName(Arrays.asList(new String[]{groupingLabel}))));
+					int i = 0;
+					for( ResultsSummary rs : resultsSummaryManager.getResultSummaries(rsc) )
 					{
-						@Override
-						public Object doInTransaction()
+						i++;
+						if( i <= adjustedLabelsToRetain )
+						{
+							continue;
+						}
+						final PlanResultKey prk = rs.getPlanResultKey();
+						if( "true".equalsIgnoreCase(groupingLabelDelete) )
+						{
+							labelManager.removeLabel(groupingLabel, prk, null);
+						}
+						if( CollectionUtils.containsAny(labelsToIgnore, rs.getLabelNames() ) )
+						{
+							i--;
+						}
+						else
 						{
 							labelManager.removeLabel(expireLabel, prk, null);
-							return null;
 						}
-					});
-			}
+					}
+					return null;
+				}
+			});
 		}
 		catch (Exception e)
 		{

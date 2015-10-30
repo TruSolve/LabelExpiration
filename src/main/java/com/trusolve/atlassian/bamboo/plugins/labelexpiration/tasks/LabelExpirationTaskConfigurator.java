@@ -30,14 +30,18 @@ import com.google.common.collect.ImmutableSet;
 
 public class LabelExpirationTaskConfigurator extends AbstractTaskConfigurator
 {
-	public static final String LABELEXPIRATION_RECORDLABEL = "groupingLabel";
+	public static final String LABELEXPIRATION_GROUPINGLABEL = "groupingLabel";
+	public static final String LABELEXPIRATION_GROUPINGLABELDELETE = "groupingLabelDelete";
 	public static final String LABELEXPIRATION_EXPIRELABEL = "expireLabel";
-	public static final String LABELEXPIRATION_LABELSSTORETAIN = "LabelsToRetain";
+	public static final String LABELEXPIRATION_LABELSSTORETAIN = "labelsToRetain";
+	public static final String LABELEXPIRATION_LABELSSTOIGNORE = "labelsToIgnore";
 
     private static final Set<String> FIELDS = ImmutableSet.of(
-    		LABELEXPIRATION_RECORDLABEL,
+    		LABELEXPIRATION_GROUPINGLABEL,
+    		LABELEXPIRATION_GROUPINGLABELDELETE,
     		LABELEXPIRATION_EXPIRELABEL,
-    		LABELEXPIRATION_LABELSSTORETAIN
+    		LABELEXPIRATION_LABELSSTORETAIN,
+    		LABELEXPIRATION_LABELSSTOIGNORE
     );
     
     
@@ -75,9 +79,9 @@ public class LabelExpirationTaskConfigurator extends AbstractTaskConfigurator
     {
         super.validate(params, errorCollection);
 
-        if (StringUtils.isEmpty(params.getString(LabelExpirationTaskConfigurator.LABELEXPIRATION_RECORDLABEL)))
+        if (StringUtils.isEmpty(params.getString(LabelExpirationTaskConfigurator.LABELEXPIRATION_GROUPINGLABEL)))
         {
-            errorCollection.addError(LabelExpirationTaskConfigurator.LABELEXPIRATION_RECORDLABEL, "Please specify the recording label.");
+            errorCollection.addError(LabelExpirationTaskConfigurator.LABELEXPIRATION_GROUPINGLABEL, "Please specify the recording label.");
         }
         if (StringUtils.isEmpty(params.getString(LabelExpirationTaskConfigurator.LABELEXPIRATION_EXPIRELABEL)))
         {

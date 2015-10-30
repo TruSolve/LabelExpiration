@@ -5,7 +5,7 @@
 		<vendor name="${project.organization.name}" url="${project.organization.url}" />
 	</plugin-info>
 
-	<taskType key="LabelExpirationTask" name="Label Expiration Task" class="com.trusolve.atlassian.bamboo.plugins.labelexpiration.tasks.LabelExpirationTask">
+	<taskType key="labelExpirationTask" name="Label Expiration Task" class="com.trusolve.atlassian.bamboo.plugins.labelexpiration.tasks.LabelExpirationTask">
 		<description>Perform setting and expiry of labels on builds.</description>
 		<category name="builder" />
 		<category name="deployment" />
