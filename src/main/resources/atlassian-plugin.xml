@@ -12,7 +12,7 @@
 		<configuration class="com.trusolve.atlassian.bamboo.plugins.labelexpiration.tasks.LabelExpirationTaskConfigurator" />
 		<resource type="freemarker" name="edit" location="com/trusolve/atlassian/bamboo/plugins/labelexpiration/templates/labelExpirationTaskEdit.ftl" />
 		<resource type="freemarker" name="view" location="com/trusolve/atlassian/bamboo/plugins/labelexpiration/templates/labelExpirationTaskView.ftl" />
-		<resource type="download" name="icon" location="om/trusolve/atlassian/bamboo/plugins/labelexpiration/pluginLogo.png" />
+		<resource type="download" name="icon" location="com/trusolve/atlassian/bamboo/plugins/labelexpiration/images/pluginLogo.png" />
 	</taskType>
 	<component-import key="transactionTemplate" name="Hibernate Transaction Template" interface="com.atlassian.sal.api.transaction.TransactionTemplate">
 		<description>hibernate transaction</description>
