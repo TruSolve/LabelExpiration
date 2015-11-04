@@ -25,7 +25,7 @@ public class LabelExpirationEventListener
 			// The deployment was run on a remote agent, we need to execute the post processing.
 			for(TaskDefinition taskDefinition : deploymentResult.getEnvironment().getTaskDefinitions())
 			{
-				if( "com.trusolve.atlassian.bamboo.labelexpiration:labelExpirationTask".equals(taskDefinition.getPluginKey()))
+				if( "com.trusolve.atlassian.bamboo.plugins.LabelExpiration:labelExpirationTask".equals(taskDefinition.getPluginKey()))
 				{
 					System.out.println(taskDefinition.toString());
 				}
@@ -44,7 +44,7 @@ public class LabelExpirationEventListener
 			// The deployment was run on a remote agent, we need to execute the post processing.
 			for(TaskDefinition taskDefinition : postBuildCompletedEvent.getContext().getTaskDefinitions() )
 			{
-				if( "com.trusolve.atlassian.bamboo.LabelExpirationTask:labelExpirationTask".equals(taskDefinition.getPluginKey()))
+				if( "com.trusolve.atlassian.bamboo.plugins.LabelExpiration:labelExpirationTask".equals(taskDefinition.getPluginKey()))
 				{
 					this.performLabel(postBuildCompletedEvent.getContext().getParentBuildContext().getPlanResultKey(), taskDefinition.getConfiguration(), 0);
 				}
