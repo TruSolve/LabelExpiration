@@ -14,57 +14,44 @@ package com.trusolve.atlassian.bamboo.plugins.labelexpiration.tasks;
    limitations under the License.
 */
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.ListUtils;
-
-import com.amazonaws.util.StringUtils;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.configuration.ConfigurationMap;
 import com.atlassian.bamboo.deployments.execution.DeploymentTaskContext;
-import com.atlassian.bamboo.labels.Label;
-import com.atlassian.bamboo.labels.LabelManager;
 import com.atlassian.bamboo.plan.PlanKeys;
-import com.atlassian.bamboo.plan.PlanManager;
 import com.atlassian.bamboo.plan.PlanResultKey;
-import com.atlassian.bamboo.resultsummary.ResultsSummary;
-import com.atlassian.bamboo.resultsummary.ResultsSummaryCriteria;
-import com.atlassian.bamboo.resultsummary.ResultsSummaryManager;
 import com.atlassian.bamboo.task.CommonTaskContext;
 import com.atlassian.bamboo.task.CommonTaskType;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
-import com.atlassian.bamboo.v2.build.agent.AgentStatus;
-import com.atlassian.bamboo.v2.build.agent.capability.AgentContext;
-import com.atlassian.sal.api.transaction.TransactionCallback;
-import com.atlassian.sal.api.transaction.TransactionTemplate;
 import com.trusolve.atlassian.bamboo.plugins.labelexpiration.LabelExpirationCore;
 
 public class LabelExpirationTask
 	extends LabelExpirationCore
 	implements CommonTaskType
 {
-
+	private static final Logger log = LoggerFactory.getLogger(LabelExpirationTask.class);
+	
 	@Override
 	public TaskResult execute(CommonTaskContext taskContext) throws TaskException
 	{
+		log.debug("Executing plugin Task.");
 		final TaskResultBuilder builder = TaskResultBuilder.newBuilder(taskContext);
 		final BuildLogger buildLogger = taskContext.getBuildLogger();
 
 		if( resultsSummaryManager == null || labelManager == null || planManager == null || transactionTemplate == null )
 		{
+			log.debug("Unable to find values for server manager components.  Assuming this is running on a remote agent.");
 			// this must be running on a remote agent.
 			buildLogger.addBuildLogEntry("Deferring labeling operations since this appears to be running on a remote agent.");
 			return builder.build();
 		}
 		
 		final ConfigurationMap config = taskContext.getConfigurationMap();
-
 
 		try
 		{
@@ -73,6 +60,7 @@ public class LabelExpirationTask
 			
 			if( taskContext instanceof TaskContext )
 			{
+				log.debug("Plugin is running on a build task.");
 				TaskContext buildContext = (TaskContext) taskContext;
 				planResultKey = buildContext.getBuildContext().getParentBuildContext().getPlanResultKey();
 				// decrement the labelsToRetain since the currently building result will get the label, but won't be present in the build label search.
@@ -80,11 +68,13 @@ public class LabelExpirationTask
 			}
 			else if ( taskContext instanceof DeploymentTaskContext )
 			{
+				log.debug("Plugin is running on a deployment task.");
 				DeploymentTaskContext dtc = (DeploymentTaskContext) taskContext;
 				planResultKey = PlanKeys.getPlanResultKey(dtc.getDeploymentContext().getVariableContext().getEffectiveVariables().get("buildResultKey").getValue());
 			}
 			else
 			{
+				log.error("Couldn't properly determine the task type.");
 				buildLogger.addErrorLogEntry("Task does not appear to be of type build or deployment");
 				builder.failed();
 				return builder.build();
@@ -93,6 +83,7 @@ public class LabelExpirationTask
 		}
 		catch (Exception e)
 		{
+			log.error("Exception occurred during label processing", e);
 			buildLogger.addErrorLogEntry("Exception: " + e.getMessage());
 			builder.failed();
 		}

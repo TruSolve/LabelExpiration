@@ -10,6 +10,7 @@ import org.apache.commons.collections.CollectionUtils;
 import com.amazonaws.util.StringUtils;
 import com.atlassian.bamboo.buildqueue.manager.AgentManager;
 import com.atlassian.bamboo.deployments.results.service.DeploymentResultService;
+import com.atlassian.bamboo.deployments.versions.service.DeploymentVersionService;
 import com.atlassian.bamboo.labels.Label;
 import com.atlassian.bamboo.labels.LabelManager;
 import com.atlassian.bamboo.plan.PlanManager;
@@ -101,8 +102,18 @@ public abstract class LabelExpirationCore
 	{
 		this.agentManager = agentManager;
 	}
+	
+	protected DeploymentVersionService deploymentVersionService = null;
+	public DeploymentVersionService getDeploymentVersionService()
+	{
+		return deploymentVersionService;
+	}
+	public void setDeploymentVersionService(DeploymentVersionService deploymentVersionService)
+	{
+		this.deploymentVersionService = deploymentVersionService;
+	}
 
-
+	
 	public void performLabel(PlanResultKey planResultKey, Map<String,String> config, int contextAdjustment)
 		throws Exception
 	{
@@ -117,6 +128,7 @@ public abstract class LabelExpirationCore
 		{
 			for( String l : labelsToIgnoreString.split(",") )
 			{
+				log.trace("Adding {} to label ignore list.", l);
 				l = l.trim().toLowerCase();
 				labelsToIgnore.add(l);
 			}
@@ -132,18 +144,18 @@ public abstract class LabelExpirationCore
 			throw new Exception("Problem parsing label retention", e);
 		}
 
-		log.debug("Performing Label Operation.  planResultKey=%s groupingLabel=%s groupingLabelDelete=%s expireLabel=%s labelsToRetain=%s labelsToIgnore=%s", planResultKey.toString(), groupingLabel, groupingLabelDelete, expireLabel, labelsToRetainString, labelsToIgnoreString);
+		log.debug("Performing Label Operation.  planResultKey={} groupingLabel={} groupingLabelDelete={} expireLabel={} labelsToRetain={} labelsToIgnore={}", planResultKey, groupingLabel, groupingLabelDelete, expireLabel, labelsToRetainString, labelsToIgnoreString);
 		addLabels(planResultKey, groupingLabel, expireLabel);
 		expireLabels(planResultKey.getPlanKey().getKey(), groupingLabel, expireLabel,labelsToRetain - contextAdjustment, "true".equalsIgnoreCase(groupingLabelDelete), labelsToIgnore);
 	}
 
 	public void addLabels(PlanResultKey planResultKey, String groupingLabel, String expireLabel)
 	{
-		log.debug("Adding groupingLabel label %s to %s", groupingLabel, planResultKey.toString());
+		log.debug("Adding groupingLabel label {} to {}", groupingLabel, planResultKey);
 		labelManager.addLabel(groupingLabel, planResultKey, null);
 		if( ! groupingLabel.equalsIgnoreCase(expireLabel) )
 		{
-			log.debug("Adding expireLabel %s to %s", expireLabel, planResultKey.toString());
+			log.debug("Adding expireLabel {} to {}", expireLabel, planResultKey);
 			labelManager.addLabel(expireLabel, planResultKey, null);
 		}
 	}
@@ -160,9 +172,12 @@ public abstract class LabelExpirationCore
 			{
 				ResultsSummaryCriteria rsc = new ResultsSummaryCriteria(planKey);
 				rsc.setMatchesLabels(new ArrayList<Label>(labelManager.getLabelsByName(Arrays.asList(new String[]{groupingLabel}))));
+				
 				int i = 0;
 				for( ResultsSummary rs : resultsSummaryManager.getResultSummaries(rsc) )
 				{
+					log.trace("Iterating through result summaries to delete labels.");
+					log.trace("Item#{}, PlanResultKey={}",i, rs.getPlanResultKey());
 					i++;
 					if( i <= labelsToRetain )
 					{
@@ -171,14 +186,17 @@ public abstract class LabelExpirationCore
 					final PlanResultKey prk = rs.getPlanResultKey();
 					if( groupingLabelDelete )
 					{
+						log.debug("Removing groupingLabel {} from {}.", groupingLabel, prk);
 						labelManager.removeLabel(groupingLabel, prk, null);
 					}
 					if( CollectionUtils.containsAny(labelsToIgnore, rs.getLabelNames() ) )
 					{
+						log.debug("Found ignoreLabel on {}.  Skipping expireLabel removal.", prk );
 						i--;
 					}
 					else
 					{
+						log.debug("Removing expireLabel {} from {}.", expireLabel, prk);
 						labelManager.removeLabel(expireLabel, prk, null);
 					}
 				}
