@@ -39,53 +39,16 @@ import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.v2.build.agent.AgentStatus;
+import com.atlassian.bamboo.v2.build.agent.capability.AgentContext;
 import com.atlassian.sal.api.transaction.TransactionCallback;
 import com.atlassian.sal.api.transaction.TransactionTemplate;
+import com.trusolve.atlassian.bamboo.plugins.labelexpiration.LabelExpirationCore;
 
-public class LabelExpirationTask implements CommonTaskType
+public class LabelExpirationTask
+	extends LabelExpirationCore
+	implements CommonTaskType
 {
-	private PlanManager planManager = null;
-	public PlanManager getPlanManager()
-	{
-		return planManager;
-	}
-
-	public void setPlanManager(PlanManager planManager)
-	{
-		this.planManager = planManager;
-	}
-
-	private LabelManager labelManager = null;
-	public LabelManager getLabelManager()
-	{
-		return labelManager;
-	}
-
-	public void setLabelManager(LabelManager labelManager)
-	{
-		this.labelManager = labelManager;
-	}
-
-	private ResultsSummaryManager resultsSummaryManager = null;
-	public ResultsSummaryManager getResultsSummaryManager()
-	{
-		return resultsSummaryManager;
-	}
-
-	public void setResultsSummaryManager(ResultsSummaryManager resultsSummaryManager)
-	{
-		this.resultsSummaryManager = resultsSummaryManager;
-	}
-
-	private TransactionTemplate transactionTemplate = null;
-	public TransactionTemplate getTransactionTemplate()
-	{
-		return transactionTemplate;
-	}
-	public void setTransactionTemplate(TransactionTemplate transactionTemplate)
-	{
-		this.transactionTemplate = transactionTemplate;
-	}
 
 	@Override
 	public TaskResult execute(CommonTaskContext taskContext) throws TaskException
@@ -93,54 +56,32 @@ public class LabelExpirationTask implements CommonTaskType
 		final TaskResultBuilder builder = TaskResultBuilder.newBuilder(taskContext);
 		final BuildLogger buildLogger = taskContext.getBuildLogger();
 
+		if( resultsSummaryManager == null || labelManager == null || planManager == null || transactionTemplate == null )
+		{
+			// this must be running on a remote agent.
+			buildLogger.addBuildLogEntry("Deferring labeling operations since this appears to be running on a remote agent.");
+			return builder.build();
+		}
+		
 		final ConfigurationMap config = taskContext.getConfigurationMap();
 
-		final String groupingLabel = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_GROUPINGLABEL));
-		final String groupingLabelDelete = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_GROUPINGLABELDELETE));
-		final String expireLabel = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_EXPIRELABEL));
-		final String labelsToRetainString = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_LABELSSTORETAIN));
-		final String labelsToIgnoreString = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_LABELSSTOIGNORE));
-		final List<String> labelsToIgnore = new ArrayList<String>();
-		
-		if( labelsToIgnoreString != null && labelsToIgnoreString.length() > 0 )
-		{
-			for( String l : labelsToIgnoreString.split(",") )
-			{
-				l = l.trim().toLowerCase();
-				labelsToIgnore.add(l);
-			}
-		}
-		
-		final int labelsToRetain;
-		try
-		{
-			labelsToRetain = Integer.parseInt(labelsToRetainString);
-		}
-		catch (Exception e)
-		{
-			throw new TaskException("Problem parsing label retention", e);
-		}
 
 		try
 		{
-			final String planKey;
 			PlanResultKey planResultKey = null;
-			final int adjustedLabelsToRetain;
+			int adjustedLabelsToRetain = 0;
 			
 			if( taskContext instanceof TaskContext )
 			{
 				TaskContext buildContext = (TaskContext) taskContext;
-				planKey = buildContext.getBuildContext().getParentBuildContext().getPlanKey();
 				planResultKey = buildContext.getBuildContext().getParentBuildContext().getPlanResultKey();
 				// decrement the labelsToRetain since the currently building result will get the label, but won't be present in the build label search.
-				adjustedLabelsToRetain = labelsToRetain - 1;
+				adjustedLabelsToRetain = 1;
 			}
 			else if ( taskContext instanceof DeploymentTaskContext )
 			{
 				DeploymentTaskContext dtc = (DeploymentTaskContext) taskContext;
-				planKey = dtc.getDeploymentContext().getVariableContext().getEffectiveVariables().get("planKey").getValue();
 				planResultKey = PlanKeys.getPlanResultKey(dtc.getDeploymentContext().getVariableContext().getEffectiveVariables().get("buildResultKey").getValue());
-				adjustedLabelsToRetain = labelsToRetain;
 			}
 			else
 			{
@@ -148,46 +89,7 @@ public class LabelExpirationTask implements CommonTaskType
 				builder.failed();
 				return builder.build();
 			}
-			labelManager.addLabel(groupingLabel, planResultKey, null);
-			if( ! groupingLabel.equalsIgnoreCase(expireLabel) )
-			{
-				labelManager.addLabel(expireLabel, planResultKey, null);
-			}
-			
-			
-			
-			transactionTemplate.execute(new TransactionCallback<Object>()
-			{
-				@Override
-				public Object doInTransaction()
-				{
-					ResultsSummaryCriteria rsc = new ResultsSummaryCriteria(planKey);
-					rsc.setMatchesLabels(new ArrayList<Label>(labelManager.getLabelsByName(Arrays.asList(new String[]{groupingLabel}))));
-					int i = 0;
-					for( ResultsSummary rs : resultsSummaryManager.getResultSummaries(rsc) )
-					{
-						i++;
-						if( i <= adjustedLabelsToRetain )
-						{
-							continue;
-						}
-						final PlanResultKey prk = rs.getPlanResultKey();
-						if( "true".equalsIgnoreCase(groupingLabelDelete) )
-						{
-							labelManager.removeLabel(groupingLabel, prk, null);
-						}
-						if( CollectionUtils.containsAny(labelsToIgnore, rs.getLabelNames() ) )
-						{
-							i--;
-						}
-						else
-						{
-							labelManager.removeLabel(expireLabel, prk, null);
-						}
-					}
-					return null;
-				}
-			});
+			this.performLabel(planResultKey, config, adjustedLabelsToRetain);
 		}
 		catch (Exception e)
 		{

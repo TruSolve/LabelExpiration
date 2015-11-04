@@ -14,6 +14,9 @@
 		<resource type="freemarker" name="view" location="com/trusolve/atlassian/bamboo/plugins/labelexpiration/templates/labelExpirationTaskView.ftl" />
 		<resource type="download" name="icon" location="com/trusolve/atlassian/bamboo/plugins/labelexpiration/images/labelExpirationLogo.png" />
 	</taskType>
+	<bambooEventListener key="labelExpirationEventListener" name="Label Expiration Event Listener" class="com.trusolve.atlassian.bamboo.plugins.labelexpiration.LabelExpirationEventListener">
+		<description>Post processing to performing labeling expiration activities on server after remote execution.</description>
+	</bambooEventListener>
 	<component-import key="transactionTemplate" name="Hibernate Transaction Template" interface="com.atlassian.sal.api.transaction.TransactionTemplate">
 		<description>hibernate transaction</description>
 	</component-import>
