@@ -1,3 +1,4 @@
+[@ww.checkbox name='labelSuccessOnly' label='Label Successful Builds Only' /]
 [@ww.label name='groupingLabel' label='Grouping Label' /]
 [@ww.checkbox name='groupingLabelDelete' label='Grouping Label' /]
 [@ww.label name='expireLabel' label='Expire Label' /]

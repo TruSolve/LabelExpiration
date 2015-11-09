@@ -35,11 +35,18 @@ public class LabelExpirationTaskConfigurator extends AbstractTaskConfigurator
 
 	public static final String LABELEXPIRATION_GROUPINGLABEL = "groupingLabel";
 	public static final String LABELEXPIRATION_GROUPINGLABELDELETE = "groupingLabelDelete";
+	public static final String LABELEXPIRATION_LABELSUCCESSONLY = "labelSuccessOnly";
 	public static final String LABELEXPIRATION_EXPIRELABEL = "expireLabel";
 	public static final String LABELEXPIRATION_LABELSSTORETAIN = "labelsToRetain";
 	public static final String LABELEXPIRATION_LABELSSTOIGNORE = "labelsToIgnore";
 
-	private static final Set<String> FIELDS = ImmutableSet.of(LABELEXPIRATION_GROUPINGLABEL, LABELEXPIRATION_GROUPINGLABELDELETE, LABELEXPIRATION_EXPIRELABEL, LABELEXPIRATION_LABELSSTORETAIN, LABELEXPIRATION_LABELSSTOIGNORE);
+	private static final Set<String> FIELDS = ImmutableSet.of(
+		LABELEXPIRATION_GROUPINGLABEL,
+		LABELEXPIRATION_GROUPINGLABELDELETE,
+		LABELEXPIRATION_LABELSUCCESSONLY,
+		LABELEXPIRATION_EXPIRELABEL,
+		LABELEXPIRATION_LABELSSTORETAIN,
+		LABELEXPIRATION_LABELSSTOIGNORE);
 
 	@Override
 	public void populateContextForView(@NotNull Map<String, Object> context, @NotNull TaskDefinition taskDefinition)
@@ -47,6 +54,14 @@ public class LabelExpirationTaskConfigurator extends AbstractTaskConfigurator
 		super.populateContextForView(context, taskDefinition);
 		log.debug("Populating the view context.");
 		taskConfiguratorHelper.populateContextWithConfiguration(context, taskDefinition, FIELDS);
+	}
+
+	@Override
+	public void populateContextForCreate(Map<String, Object> context)
+	{
+		// TODO Auto-generated method stub
+		super.populateContextForCreate(context);
+		context.put(LABELEXPIRATION_LABELSUCCESSONLY, "true");
 	}
 
 	@Override

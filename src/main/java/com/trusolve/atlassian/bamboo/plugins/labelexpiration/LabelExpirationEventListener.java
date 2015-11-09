@@ -26,20 +26,16 @@ public class LabelExpirationEventListener
 		DeploymentResult deploymentResult = deploymentResultService.getDeploymentResult(deploymentFinishedEvent.getDeploymentResultId());
 		log.debug("Performing DeploymentFinishedEvent processing for {} in LabelExpiration plugin.", deploymentResult.getKey() );
 		int processedLabelExpirations = 0;
-		if( ! AgentType.LOCAL.equals(deploymentResult.getAgent().getType()) )
+		for(TaskDefinition taskDefinition : deploymentResult.getEnvironment().getTaskDefinitions())
 		{
-			// The deployment was run on a remote agent, we need to execute the post processing.
-			for(TaskDefinition taskDefinition : deploymentResult.getEnvironment().getTaskDefinitions())
+			if( PLUGIN_KEY.equals(taskDefinition.getPluginKey()))
 			{
-				if( PLUGIN_KEY.equals(taskDefinition.getPluginKey()))
+				for( PlanResultKey planResultKey : deploymentVersionService.getRelatedPlanResultKeys(deploymentResult.getDeploymentVersion().getId()) )
 				{
-					for( PlanResultKey planResultKey : deploymentVersionService.getRelatedPlanResultKeys(deploymentResult.getDeploymentVersion().getId()) )
-					{
-						log.debug("Labeling plan {}", planResultKey);
-						this.performLabel(planResultKey, taskDefinition.getConfiguration(), 0);
-					}
-					processedLabelExpirations++;
+					log.debug("Labeling plan {}", planResultKey);
+					this.performLabel(planResultKey, taskDefinition.getConfiguration(), 0, deploymentResult.getDeploymentState());
 				}
+				processedLabelExpirations++;
 			}
 		}
 		log.debug("Processed {} Label Expiration directives in {}.", processedLabelExpirations, deploymentResult.getKey() );
@@ -51,24 +47,17 @@ public class LabelExpirationEventListener
 	{
 		ResultsSummary resultsSummary = resultsSummaryManager.getResultsSummary(postBuildCompletedEvent.getPlanResultKey());
 		log.debug("Performing PostBuildCompletedEvent processing for {} in LabelExpiration plugin.", postBuildCompletedEvent.getPlanResultKey() );
-		BuildAgent buildAgent = agentManager.getAgent(resultsSummary.getBuildAgentId());
 		int processedLabelExpirations = 0;
-		if( ! AgentType.LOCAL.equals(buildAgent.getType()) )
+		for(TaskDefinition taskDefinition : postBuildCompletedEvent.getContext().getTaskDefinitions() )
 		{
-			// The deployment was run on a remote agent, we need to execute the post processing.
-			for(TaskDefinition taskDefinition : postBuildCompletedEvent.getContext().getTaskDefinitions() )
+			if( PLUGIN_KEY.equals(taskDefinition.getPluginKey()))
 			{
-				if( PLUGIN_KEY.equals(taskDefinition.getPluginKey()))
-				{
-					PlanResultKey prk = postBuildCompletedEvent.getContext().getParentBuildContext().getPlanResultKey();
-					log.debug("Labeling plan {}", prk);
-					this.performLabel(prk, taskDefinition.getConfiguration(), 0);
-					processedLabelExpirations++;
-				}
+				PlanResultKey prk = postBuildCompletedEvent.getContext().getParentBuildContext().getPlanResultKey();
+				log.debug("Labeling plan {}", prk);
+				this.performLabel(prk, taskDefinition.getConfiguration(), 0, resultsSummary.getBuildState());
+				processedLabelExpirations++;
 			}
 		}
 		log.debug("Processed {} Label Expiration directives in {}.", processedLabelExpirations, postBuildCompletedEvent.getPlanResultKey().toString() );
 	}
-
-
 }

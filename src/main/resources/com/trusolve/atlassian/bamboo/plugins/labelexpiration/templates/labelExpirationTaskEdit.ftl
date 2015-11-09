@@ -1,3 +1,5 @@
+[@ww.checkbox name='labelSuccessOnly' label='Label Successful Builds Only' required='true' description='Check to only perform label operations on successful builds.' /]
+
 [@ww.textfield name='groupingLabel' label='Grouping Label' required='true' description='The label to use for grouping.' /]
 
 [@ww.checkbox name='groupingLabelDelete' label='Delete Grouping Label' required='true' description='Check to delete the grouping label upon expiry.' /]

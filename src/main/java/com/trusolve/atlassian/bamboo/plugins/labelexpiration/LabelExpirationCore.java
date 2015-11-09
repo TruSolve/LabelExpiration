@@ -6,8 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 
-import com.amazonaws.util.StringUtils;
+import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.buildqueue.manager.AgentManager;
 import com.atlassian.bamboo.deployments.results.service.DeploymentResultService;
 import com.atlassian.bamboo.deployments.versions.service.DeploymentVersionService;
@@ -30,6 +31,7 @@ public abstract class LabelExpirationCore
 {
 	private static final Logger log = LoggerFactory.getLogger(LabelExpirationCore.class);
 	
+	//Getter/Setters for Bamboo manager object injection
 	protected PlanManager planManager = null;
 	public PlanManager getPlanManager()
 	{
@@ -113,15 +115,30 @@ public abstract class LabelExpirationCore
 		this.deploymentVersionService = deploymentVersionService;
 	}
 
+
 	
-	public void performLabel(PlanResultKey planResultKey, Map<String,String> config, int contextAdjustment)
-		throws Exception
+	/**
+	 * @param planResultKey
+	 * @param config
+	 * @param contextAdjustment
+	 * @throws NumberFormatException
+	 */
+	public void performLabel(PlanResultKey planResultKey, Map<String,String> config, int contextAdjustment, BuildState status)
+		throws NumberFormatException
 	{
+		final boolean labelSuccessOnly = "true".equalsIgnoreCase((StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_LABELSUCCESSONLY))));
+		if( labelSuccessOnly && status.equals(BuildState.FAILED) )
+		{
+			log.debug("Build failed...skipping label operations.");
+			return;
+		}
+
 		final String groupingLabel = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_GROUPINGLABEL));
 		final String groupingLabelDelete = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_GROUPINGLABELDELETE));
 		final String expireLabel = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_EXPIRELABEL));
 		final String labelsToRetainString = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_LABELSSTORETAIN));
 		final String labelsToIgnoreString = StringUtils.trim(config.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_LABELSSTOIGNORE));
+
 		final List<String> labelsToIgnore = new ArrayList<String>();
 		
 		if( labelsToIgnoreString != null && labelsToIgnoreString.length() > 0 )
@@ -135,20 +152,21 @@ public abstract class LabelExpirationCore
 		}
 		
 		final int labelsToRetain;
-		try
-		{
-			labelsToRetain = Integer.parseInt(labelsToRetainString);
-		}
-		catch (Exception e)
-		{
-			throw new Exception("Problem parsing label retention", e);
-		}
+		labelsToRetain = Integer.parseInt(labelsToRetainString);
 
 		log.debug("Performing Label Operation.  planResultKey={} groupingLabel={} groupingLabelDelete={} expireLabel={} labelsToRetain={} labelsToIgnore={}", planResultKey, groupingLabel, groupingLabelDelete, expireLabel, labelsToRetainString, labelsToIgnoreString);
 		addLabels(planResultKey, groupingLabel, expireLabel);
 		expireLabels(planResultKey.getPlanKey().getKey(), groupingLabel, expireLabel,labelsToRetain - contextAdjustment, "true".equalsIgnoreCase(groupingLabelDelete), labelsToIgnore);
 	}
 
+	/**
+	 * This function performs the assignment of the groupingLabel and the expireLabel to
+	 * the current build. 
+	 * 
+	 * @param planResultKey The Plan Result Key for the build to assign the labels to.
+	 * @param groupingLabel The grouping label.
+	 * @param expireLabel The expire label.
+	 */
 	public void addLabels(PlanResultKey planResultKey, String groupingLabel, String expireLabel)
 	{
 		log.debug("Adding groupingLabel label {} to {}", groupingLabel, planResultKey);
