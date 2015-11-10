@@ -3,6 +3,8 @@
 		<description>${project.description}</description>
 		<version>${project.version}</version>
 		<vendor name="${project.organization.name}" url="${project.organization.url}" />
+		<param name="plugin-icon">com/trusolve/atlassian/bamboo/plugins/labelexpiration/images/labelExpirationLogo.png</param>
+        <param name="plugin-logo">com/trusolve/atlassian/bamboo/plugins/labelexpiration/images/labelExpirationLogoUPM.png</param>
 	</plugin-info>
 
 	<taskType key="labelExpirationTask" name="Label Expiration Task" class="com.trusolve.atlassian.bamboo.plugins.labelexpiration.tasks.LabelExpirationTask">
