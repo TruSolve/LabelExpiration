@@ -28,7 +28,7 @@ public class LabelExpirationEventListener
 		int processedLabelExpirations = 0;
 		for(TaskDefinition taskDefinition : deploymentResult.getEnvironment().getTaskDefinitions())
 		{
-			if( PLUGIN_KEY.equals(taskDefinition.getPluginKey()))
+			if( taskDefinition.isEnabled() && PLUGIN_KEY.equals(taskDefinition.getPluginKey()))
 			{
 				for( PlanResultKey planResultKey : deploymentVersionService.getRelatedPlanResultKeys(deploymentResult.getDeploymentVersion().getId()) )
 				{
@@ -50,7 +50,7 @@ public class LabelExpirationEventListener
 		int processedLabelExpirations = 0;
 		for(TaskDefinition taskDefinition : postBuildCompletedEvent.getContext().getTaskDefinitions() )
 		{
-			if( PLUGIN_KEY.equals(taskDefinition.getPluginKey()))
+			if( taskDefinition.isEnabled() && PLUGIN_KEY.equals(taskDefinition.getPluginKey()))
 			{
 				PlanResultKey prk = postBuildCompletedEvent.getContext().getParentBuildContext().getPlanResultKey();
 				log.debug("Labeling plan {}", prk);
