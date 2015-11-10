@@ -119,4 +119,15 @@
         	</plugins>
         </pluginManagement>
     </build>
+    <url>https://github.com/prestongilchrist/LabelExpiration</url>
+    <scm>
+    	<url>https://github.com/prestongilchrist/LabelExpiration.git</url>
+    	<connection>scm:git:https://github.com/prestongilchrist/LabelExpiration.git</connection>
+    	<developerConnection>scm:git:https://github.com/prestongilchrist/LabelExpiration.git</developerConnection>
+    	<tag>HEAD</tag>
+    </scm>
+    <issueManagement>
+    	<url>https://github.com/prestongilchrist/LabelExpiration/issues</url>
+    	<system>GitHub</system>
+    </issueManagement>
 </project>
