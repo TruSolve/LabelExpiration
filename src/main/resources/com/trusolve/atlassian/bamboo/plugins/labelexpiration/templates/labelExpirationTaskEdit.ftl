@@ -8,4 +8,4 @@
 
 [@ww.textfield name='labelsToRetain' label='Number of Labeled Builds to Retain' required=true description='The number of builds labeled with the grouping label to keep before expiring the oldest' /]
 
-[@ww.textfield name='labelsToIgnore' label='Labels to Ignore' required=true description='Comma separated list of labels to ignore.' /]
+[@ww.textfield name='labelsToIgnore' label='Labels to Ignore' description='Comma separated list of labels to ignore.' /]
