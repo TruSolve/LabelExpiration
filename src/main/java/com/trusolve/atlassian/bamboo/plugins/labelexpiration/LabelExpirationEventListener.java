@@ -87,12 +87,15 @@ public class LabelExpirationEventListener
 			if( key != null && key.startsWith(LabelExpirationTaskConfigurator.LABELEXPIRATION_RESULTVARIABLEPREFIX))
 			{
 				String[] keyVals = key.split("\\.");
-				if( ! confs.containsKey(keyVals[1]) )
+				if( keyVals.length == 3 )
 				{
-					confs.put(keyVals[1], new HashMap<String,String>());
+					if( ! confs.containsKey(keyVals[1]) )
+					{
+						confs.put(keyVals[1], new HashMap<String,String>());
+					}
+					Map<String,String> conf = confs.get(keyVals[1]);
+					conf.put(keyVals[2], e.getValue());
 				}
-				Map<String,String> conf = confs.get(keyVals[1]);
-				conf.put(keyVals[2], e.getValue());
 			}
 		}
 		if( confs.size() == 0 )

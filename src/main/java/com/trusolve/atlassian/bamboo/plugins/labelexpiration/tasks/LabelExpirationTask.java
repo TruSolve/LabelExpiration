@@ -38,6 +38,7 @@ public class LabelExpirationTask
 	implements CommonTaskType
 {
 	private static final Logger log = LoggerFactory.getLogger(LabelExpirationTask.class);
+	private static final String PLUGIN_COUNT = "pluginCount";
 	
 	@Override
 	public TaskResult execute(CommonTaskContext taskContext) throws TaskException
@@ -54,7 +55,7 @@ public class LabelExpirationTask
 		int pluginCount = 0;
 		try
 		{
-			pluginCount = Integer.parseInt(customBuildData.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_RESULTVARIABLEPREFIX + "pluginCount"));
+			pluginCount = Integer.parseInt(customBuildData.get(LabelExpirationTaskConfigurator.LABELEXPIRATION_RESULTVARIABLEPREFIX + PLUGIN_COUNT));
 			pluginCount++;
 		}
 		catch( Exception e )
@@ -62,7 +63,7 @@ public class LabelExpirationTask
 			// do nothing
 		}
 		String pluginCountString = Integer.toString(pluginCount);
-		customBuildData.put(LabelExpirationTaskConfigurator.LABELEXPIRATION_RESULTVARIABLEPREFIX + "pluginCount", pluginCountString);
+		customBuildData.put(LabelExpirationTaskConfigurator.LABELEXPIRATION_RESULTVARIABLEPREFIX + PLUGIN_COUNT, pluginCountString);
 		for( Map.Entry<String,String> entry : taskContext.getConfigurationMap().entrySet() )
 		{
 			customBuildData.put(LabelExpirationTaskConfigurator.LABELEXPIRATION_RESULTVARIABLEPREFIX + pluginCountString + "." + entry.getKey(), entry.getValue());
