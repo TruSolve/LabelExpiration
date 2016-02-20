@@ -1,24 +1,17 @@
 package com.trusolve.atlassian.bamboo.plugins.labelexpiration;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.atlassian.bamboo.agent.AgentType;
 import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.deployments.execution.events.DeploymentFinishedEvent;
 import com.atlassian.bamboo.deployments.results.DeploymentResult;
 import com.atlassian.bamboo.plan.PlanResultKey;
-import com.atlassian.bamboo.resultsummary.BuildResultsSummary;
 import com.atlassian.bamboo.resultsummary.ResultsSummary;
-import com.atlassian.bamboo.task.TaskDefinition;
-import com.atlassian.bamboo.v2.build.agent.BuildAgent;
 import com.atlassian.bamboo.v2.build.events.PostBuildCompletedEvent;
-import com.atlassian.bamboo.variable.VariableContextSnapshot;
 import com.atlassian.event.api.EventListener;
 import com.atlassian.sal.api.transaction.TransactionCallback;
 import com.trusolve.atlassian.bamboo.plugins.labelexpiration.tasks.LabelExpirationTaskConfigurator;
@@ -79,6 +72,8 @@ public class LabelExpirationEventListener
 			}
 		});
 
+		log.debug("Performing PostBuildCompletedEvent processing for {} in LabelExpiration plugin.", postBuildCompletedEvent.getContext().getParentBuildContext().getPlanResultKey() );
+
 		handleLabeling(customBuildData, postBuildCompletedEvent.getContext().getParentBuildContext().getPlanResultKey(), buildState.get());
 	}
 	
@@ -105,7 +100,6 @@ public class LabelExpirationEventListener
 			log.debug("No configuration found.  Exiting without labeling.");
 			return;
 		}
-		log.debug("Performing PostBuildCompletedEvent processing for {} in LabelExpiration plugin.", prk );
 		int processedLabelExpirations = 0;
 
 		for( Map<String,String> conf : confs.values() )
