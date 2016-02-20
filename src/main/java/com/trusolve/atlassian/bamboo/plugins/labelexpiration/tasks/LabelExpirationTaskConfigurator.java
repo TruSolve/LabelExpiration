@@ -33,6 +33,8 @@ public class LabelExpirationTaskConfigurator extends AbstractTaskConfigurator
 {
 	private static final Logger log = LoggerFactory.getLogger(LabelExpirationTaskConfigurator.class);
 
+	public static final String LABELEXPIRATION_RESULTVARIABLEPREFIX = "labelExpirationTask.";
+	
 	public static final String LABELEXPIRATION_GROUPINGLABEL = "groupingLabel";
 	public static final String LABELEXPIRATION_GROUPINGLABELDELETE = "groupingLabelDelete";
 	public static final String LABELEXPIRATION_LABELSUCCESSONLY = "labelSuccessOnly";
