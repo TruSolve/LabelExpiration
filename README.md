@@ -14,24 +14,24 @@ A typical use case for this plugin would be to perform more advanaced retention 
 
 1. Configure the Bamboo build expiration process to NOT expire builds with the tag "lock" on them.
 2. Configuration the LabelExpiration plugin on your Dev deployment as follows:
-* Label Successful Builds Only - checked
-* Grouping Label - dev
-* Delete Grouping Label - unchecked
-* Expire Label - lock
-* Number of Labeled Builds to Retain - 10
-* Labels to Ignore - {NOTHING}
+  * Label Successful Builds Only - checked
+  * Grouping Label - dev
+  * Delete Grouping Label - unchecked
+  * Expire Label - lock
+  * Number of Labeled Builds to Retain - 10
+  * Labels to Ignore - {NOTHING}
 3. Configuration the LabelExpiration plugin on your QA deployment as follows:
-* Label Successful Builds Only - checked
-* Grouping Label - qa
-* Delete Grouping Label - unchecked
-* Expire Label - lock
-* Number of Labeled Builds to Retain - 5
-* Labels to Ignore - {NOTHING}
+  * Label Successful Builds Only - checked
+  * Grouping Label - qa
+  * Delete Grouping Label - unchecked
+  * Expire Label - lock
+  * Number of Labeled Builds to Retain - 5
+  * Labels to Ignore - {NOTHING}
 2. Configuration the LabelExpiration plugin on your Prod deployment as follows:
-* Label Successful Builds Only - checked
-* Grouping Label - prod
-* Delete Grouping Label - unchecked
-* Expire Label - lock
-* Number of Labeled Builds to Retain - 2
-* Labels to Ignore - {NOTHING}
+  * Label Successful Builds Only - checked
+  * Grouping Label - prod
+  * Delete Grouping Label - unchecked
+  * Expire Label - lock
+  * Number of Labeled Builds to Retain - 2
+  * Labels to Ignore - {NOTHING}
 
